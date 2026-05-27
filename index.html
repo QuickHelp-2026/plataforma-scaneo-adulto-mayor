@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Cafám · Guías</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg:      #0A0E1A;
+  --card:    #111827;
+  --card2:   #1C2536;
+  --border:  #2A3548;
+  --border2: #3D4F6A;
+  --txt:     #E8EEFF;
+  --txt2:    #8A9BB8;
+  --txt3:    #4A5A78;
+  --blue:    #3B82F6;
+  --blue2:   #1D4ED8;
+  --green:   #22C55E;
+  --green2:  #15803D;
+  --red:     #EF4444;
+  --amber:   #F59E0B;
+  --purple:  #A855F7;
+  --teal:    #14B8A6;
+  --mono:    'IBM Plex Mono', monospace;
+  --sans:    'Sora', sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--sans);color:var(--txt);}
+
+/* ── SCREENS ──────────────────────────────────────── */
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(20px);transition:opacity .22s ease,transform .22s ease;}
+.screen.on{opacity:1;pointer-events:all;transform:none;}
+
+/* ── HEADER ───────────────────────────────────────── */
+.hdr{
+  padding:env(safe-area-inset-top,12px) 16px 12px;
+  padding-top:max(env(safe-area-inset-top,12px),12px);
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+  flex-shrink:0;
+}
+.hdr-ico{
+  width:38px;height:38px;border-radius:10px;
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  flex-shrink:0;
+}
+.hdr-title{font-size:15px;font-weight:700;letter-spacing:-.3px;}
+.hdr-sub{font-size:11px;color:var(--txt2);margin-top:1px;}
+.hdr-back{margin-right:4px;background:none;border:none;color:var(--blue);font-size:22px;cursor:pointer;padding:4px;flex-shrink:0;}
+.hdr-count{
+  margin-left:auto;
+  background:var(--blue2);color:#fff;
+  border-radius:99px;padding:4px 12px;
+  font-size:12px;font-weight:700;font-family:var(--mono);
+  flex-shrink:0;
+}
+
+/* ── BODY SCROLL ──────────────────────────────────── */
+.body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:16px;}
+
+/* ── CARDS ────────────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:12px;}
+.card-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.card-hdr-ico{font-size:16px;}
+.card-hdr-lbl{font-size:12px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.8px;}
+.card-body{padding:16px;}
+
+/* ── FORM ─────────────────────────────────────────── */
+.field{margin-bottom:14px;}
+.lbl{font-size:11px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;display:block;}
+input[type=text],input[type=tel],textarea{
+  width:100%;padding:13px 16px;
+  background:var(--card2);border:1.5px solid var(--border);border-radius:12px;
+  color:var(--txt);font-family:var(--sans);font-size:15px;
+  -webkit-appearance:none;outline:none;
+  transition:border-color .15s;
+}
+input:focus,textarea:focus{border-color:var(--blue);}
+textarea{resize:none;height:80px;}
+
+/* Zona input grande */
+.zona-input{
+  font-size:18px;font-weight:700;text-transform:uppercase;
+  padding:16px;letter-spacing:.5px;
+}
+
+/* ── BIG BUTTONS ──────────────────────────────────── */
+.btn{
+  width:100%;padding:16px;border-radius:14px;border:none;
+  font-family:var(--sans);font-size:16px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:transform .1s,opacity .15s;
+  -webkit-user-select:none;
+  letter-spacing:-.2px;
+}
+.btn:active{transform:scale(.96);}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:disabled{background:var(--border2);color:var(--txt3);cursor:not-allowed;}
+.btn-primary:active:not(:disabled){background:var(--blue2);}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--red);border:1.5px solid rgba(239,68,68,.4);}
+.btn-ghost{background:var(--card2);color:var(--txt2);border:1.5px solid var(--border);}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:active{background:var(--green2);}
+.btn-sm{padding:10px 18px;font-size:14px;border-radius:10px;width:auto;}
+
+/* ── SCAN SCREEN ──────────────────────────────────── */
+#scanScreen{background:#000;}
+
+.cam-wrap{
+  position:relative;flex:1;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+#camVideo{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;
+}
+.cam-overlay{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 260px 200px at center,transparent 45%,rgba(0,0,0,.75) 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.cam-frame{
+  width:260px;height:180px;
+  border:2.5px solid var(--blue);border-radius:16px;
+  position:relative;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.55);
+}
+.cam-frame::before,.cam-frame::after,
+.cam-corner-br,.cam-corner-bl{
+  content:'';position:absolute;width:28px;height:28px;border-color:var(--blue);border-style:solid;
+}
+.cam-frame::before{top:-2px;left:-2px;border-width:4px 0 0 4px;border-radius:12px 0 0 0;}
+.cam-frame::after{top:-2px;right:-2px;border-width:4px 4px 0 0;border-radius:0 12px 0 0;}
+.cam-corner-br{bottom:-2px;right:-2px;border-width:0 4px 4px 0;border-radius:0 0 12px 0;}
+.cam-corner-bl{bottom:-2px;left:-2px;border-width:0 0 4px 4px;border-radius:0 0 0 12px;}
+.cam-line{
+  position:absolute;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--blue),transparent);
+  animation:scan 1.8s ease-in-out infinite;
+  top:0;
+}
+@keyframes scan{0%{top:0%}50%{top:calc(100% - 2px)}100%{top:0%}}
+
+.cam-hint{
+  position:absolute;bottom:-44px;
+  color:#fff;font-size:13px;font-weight:600;
+  background:rgba(0,0,0,.5);padding:6px 16px;border-radius:99px;
+  white-space:nowrap;
+}
+
+.cam-status{
+  position:absolute;top:0;left:0;right:0;
+  padding:12px 16px;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(8px);
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:600;
+}
+.cam-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+
+.cam-last{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:14px 20px;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(10px);
+}
+.cam-last-lbl{font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+.cam-last-code{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--green);}
+.cam-last-type{font-size:11px;color:var(--txt2);margin-top:2px;}
+
+/* Flash de éxito */
+.flash{
+  position:absolute;inset:0;background:rgba(34,197,94,.3);
+  opacity:0;pointer-events:none;border-radius:14px;
+  transition:opacity .1s;
+}
+.flash.show{opacity:1;}
+
+/* ── MANUAL INPUT en scan ──────────────────────────── */
+.manual-bar{
+  flex-shrink:0;
+  padding:10px 12px;
+  background:var(--card);
+  border-top:1px solid var(--border);
+  display:flex;gap:8px;align-items:center;
+}
+.manual-inp{
+  flex:1;padding:11px 14px;
+  background:var(--card2);border:1.5px solid var(--border);
+  border-radius:10px;color:var(--txt);
+  font-family:var(--mono);font-size:15px;font-weight:600;
+  letter-spacing:.5px;text-transform:uppercase;outline:none;
+  -webkit-appearance:none;
+  transition:border-color .15s;
+}
+.manual-inp:focus{border-color:var(--blue);}
+.add-btn{
+  flex-shrink:0;width:50px;height:50px;border-radius:10px;
+  background:var(--blue);border:none;color:#fff;
+  font-size:24px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .1s,background .15s;
+}
+.add-btn:active{transform:scale(.92);background:var(--blue2);}
+
+/* ── GUIDE LIST ───────────────────────────────────── */
+.guide-list{display:flex;flex-direction:column;gap:6px;}
+.guide-item{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:10px;padding:10px 12px;
+  animation:slideIn .18s ease;
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.g-num{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--border);color:var(--txt2);
+  font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-family:var(--mono);
+}
+.g-code{font-family:var(--mono);font-size:13px;font-weight:600;flex:1;}
+.g-type{
+  font-size:10px;font-weight:700;padding:3px 8px;
+  border-radius:99px;flex-shrink:0;letter-spacing:.4px;
+}
+.tp-PEND {background:rgba(59,130,246,.2);color:#7CC3FF;}
+.tp-CAF  {background:rgba(34,197,94,.2);color:#6EE7A0;}
+.tp-SAN  {background:rgba(245,158,11,.2);color:#FCD34D;}
+.tp-ADULT{background:rgba(168,85,247,.2);color:#D8B4FE;}
+.g-del{
+  background:none;border:none;cursor:pointer;
+  font-size:18px;padding:2px 4px;border-radius:6px;
+  flex-shrink:0;opacity:.5;transition:opacity .15s;
+}
+.g-del:active{opacity:1;}
+
+/* ── PILLS ────────────────────────────────────────── */
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.pill{
+  padding:5px 12px;border-radius:99px;font-size:12px;font-weight:700;
+  display:flex;align-items:center;gap:5px;
+}
+.pill-total{background:var(--card2);border:1px solid var(--border);color:var(--txt);}
+.pill-PEND {background:rgba(59,130,246,.15);color:#7CC3FF;border:1px solid rgba(59,130,246,.3);}
+.pill-CAF  {background:rgba(34,197,94,.15);color:#6EE7A0;border:1px solid rgba(34,197,94,.3);}
+.pill-SAN  {background:rgba(245,158,11,.15);color:#FCD34D;border:1px solid rgba(245,158,11,.3);}
+.pill-ADULT{background:rgba(168,85,247,.15);color:#D8B4FE;border:1px solid rgba(168,85,247,.3);}
+
+/* ── EMPTY ────────────────────────────────────────── */
+.empty{
+  text-align:center;padding:28px 16px;
+  color:var(--txt3);font-size:13px;
+  border:1.5px dashed var(--border);border-radius:12px;
+}
+.empty-ico{font-size:32px;margin-bottom:8px;opacity:.5;}
+
+/* ── CONFIRM SCREEN ───────────────────────────────── */
+.confirm-hero{
+  text-align:center;padding:28px 20px 20px;
+}
+.confirm-ico{font-size:52px;margin-bottom:12px;}
+.confirm-title{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+.confirm-sub{font-size:13px;color:var(--txt2);margin-top:6px;line-height:1.5;}
+
+.info-grid{
+  display:grid;gap:0;
+  border:1px solid var(--border);border-radius:14px;overflow:hidden;
+  margin-bottom:12px;
+}
+.info-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  font-size:13px;
+}
+.info-row:last-child{border-bottom:none;}
+.info-row:nth-child(even){background:rgba(255,255,255,.02);}
+.info-lbl{color:var(--txt2);}
+.info-val{font-weight:700;font-family:var(--mono);font-size:12px;color:var(--txt);text-align:right;max-width:200px;word-break:break-all;}
+
+/* ── SUCCESS ──────────────────────────────────────── */
+.success-wrap{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:32px 24px;text-align:center;
+}
+.success-ico{font-size:72px;animation:pop .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+.success-title{font-size:26px;font-weight:800;margin:16px 0 8px;letter-spacing:-.5px;}
+.success-msg{color:var(--txt2);font-size:14px;line-height:1.6;}
+
+/* ── TOAST ────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
+  left:16px;right:16px;z-index:999;
+  background:var(--card);border-radius:12px;
+  padding:12px 16px;font-size:13px;font-weight:600;
+  display:flex;align-items:center;gap:10px;
+  border:1px solid var(--border);
+  transform:translateY(80px);opacity:0;
+  transition:transform .25s cubic-bezier(.34,1.2,.64,1),opacity .2s;
+  pointer-events:none;
+}
+.toast.show{transform:none;opacity:1;}
+.toast.ok  {border-color:var(--green);color:var(--green);}
+.toast.err {border-color:var(--red);color:var(--red);}
+.toast.info{border-color:var(--blue);color:var(--blue);}
+
+/* ── SCROLLBAR ────────────────────────────────────── */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;}
+
+/* ── SEPARATOR ────────────────────────────────────── */
+.sep{height:1px;background:var(--border);margin:4px 0 14px;}
+.btn-row{display:flex;gap:8px;}
+.btn-row .btn{flex:1;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     PANTALLA 1 — DATOS MENSAJERO
+══════════════════════════════════════════════════ -->
+<div class="screen on" id="s1">
+  <div class="hdr">
+    <div class="hdr-ico">📦</div>
+    <div>
+      <div class="hdr-title">Registro de Guías</div>
+      <div class="hdr-sub" id="hdr-fecha"></div>
+    </div>
+  </div>
+  <div class="body">
+
+    <div class="card">
+      <div class="card-hdr">
+        <span class="card-hdr-ico">👤</span>
+        <span class="card-hdr-lbl">Mensajero</span>
+      </div>
+      <div class="card-body">
+        <div class="field">
+          <label class="lbl">Nombre completo</label>
+          <input type="text" id="f-nombre" placeholder="Nombre del mensajero"
+            autocomplete="off" autocorrect="off" spellcheck="false"
+            inputmode="text">
+        </div>
+        <div class="field">
+          <label class="lbl">Cédula</label>
+          <input type="tel" id="f-cedula" placeholder="Número de cédula"
+            autocomplete="off" inputmode="numeric">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label class="lbl">Zona / Ruta</label>
+          <select id="f-zona" style="font-size:16px;font-weight:700;padding:14px 16px;">
+            <option value="">— Selecciona la zona —</option>
+            <option value="ENGATIVÁ">🔵 Engativá</option>
+            <option value="SUBA">🟢 Suba</option>
+            <option value="BOSA">🟡 Bosa</option>
+            <option value="KENNEDY">🟠 Kennedy</option>
+            <option value="FONTIBÓN">🔴 Fontibón</option>
+            <option value="CHAPINERO">🟣 Chapinero</option>
+            <option value="USAQUÉN">🔵 Usaquén</option>
+            <option value="TEUSAQUILLO">🟢 Teusaquillo</option>
+            <option value="BARRIOS UNIDOS">🟡 Barrios Unidos</option>
+            <option value="LOS MÁRTIRES">🟠 Los Mártires</option>
+            <option value="PUENTE ARANDA">🔴 Puente Aranda</option>
+            <option value="SANTA FE">🟣 Santa Fe</option>
+            <option value="SAN CRISTÓBAL">🔵 San Cristóbal</option>
+            <option value="USME">🟢 Usme</option>
+            <option value="TUNJUELITO">🟡 Tunjuelito</option>
+            <option value="CIUDAD BOLÍVAR">🟠 Ciudad Bolívar</option>
+            <option value="RAFAEL URIBE">🔴 Rafael Uribe Uribe</option>
+            <option value="ANTONIO NARIÑO">🟣 Antonio Nariño</option>
+            <option value="LA CANDELARIA">🔵 La Candelaria</option>
+            <option value="CÚCUTA">📍 Cúcuta</option>
+            <option value="CÚCUTA NORTE">📍 Cúcuta Norte</option>
+            <option value="CÚCUTA SUR">📍 Cúcuta Sur</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-continuar" onclick="irEscanear()">
+      Continuar → Escanear guías
+    </button>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PANTALLA 2 — ESCANEO + LISTA ACUMULADA
+══════════════════════════════════════════════════ -->
+<div class="screen" id="s2">
+
+  <!-- Header con conteo -->
+  <div class="hdr">
+    <button class="hdr-back" onclick="volverS1()">‹</button>
+    <div>
+      <div class="hdr-title" id="hdr-msj-nombre">Mensajero</div>
+      <div class="hdr-sub" id="hdr-msj-zona"></div>
+    </div>
+    <div class="hdr-count" id="hdr-count">0</div>
+  </div>
+
+  <!-- Cámara -->
+  <div class="cam-wrap">
+    <video id="camVideo" autoplay playsinline muted></video>
+
+    <div class="cam-overlay">
+      <div class="cam-frame">
+        <div class="cam-corner-br"></div>
+        <div class="cam-corner-bl"></div>
+        <div class="cam-line"></div>
+        <div class="flash" id="flash"></div>
+      </div>
+      <div class="cam-hint">Apunta al código de barras de la tirilla</div>
+    </div>
+
+    <!-- Estado cámara -->
+    <div class="cam-status" id="camStatus">
+      <div class="cam-dot"></div>
+      <span>Cámara activa — escaneando...</span>
+    </div>
+
+    <!-- Última guía escaneada -->
+    <div class="cam-last" id="camLast" style="display:none">
+      <div class="cam-last-lbl">Última guía</div>
+      <div class="cam-last-code" id="lastCode">—</div>
+      <div class="cam-last-type" id="lastType">—</div>
+    </div>
+  </div>
+
+  <!-- Input manual -->
+  <div class="manual-bar">
+    <input class="manual-inp" id="manual-inp" type="text"
+      placeholder="Escribe la guía manualmente..."
+      autocomplete="off" autocorrect="off" autocapitalize="characters"
+      spellcheck="false" inputmode="text"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();addManual()}"
+      oninput="this.value=this.value.toUpperCase()">
+    <button class="add-btn" onclick="addManual()" title="Agregar">＋</button>
+  </div>
+
+  <!-- Lista acumulada -->
+  <div style="flex-shrink:0;padding:10px 12px 0;display:flex;justify-content:space-between;align-items:center;">
+    <div class="pills" id="pills" style="margin:0;flex:1"></div>
+    <button onclick="limpiarTodo()" style="background:none;border:none;color:var(--txt3);font-size:12px;cursor:pointer;padding:4px;flex-shrink:0;">limpiar</button>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 12px 8px;" id="list-wrap">
+    <div class="guide-list" id="guideList"></div>
+    <div class="empty" id="emptyState">
+      <div class="empty-ico">📷</div>
+      <div>Escanea la primera tirilla</div>
+    </div>
+  </div>
+
+  <!-- Botón finalizar -->
+  <div style="padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px);flex-shrink:0;background:var(--card);border-top:1px solid var(--border);">
+    <button class="btn btn-green" id="btn-finalizar" onclick="irConfirmar()" disabled>
+      ✓ Finalizar y guardar
+    </button>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PANTALLA 3 — CONFIRMAR
+══════════════════════════════════════════════════ -->
+<div class="screen" id="s3">
+  <div class="hdr">
+    <button class="hdr-back" onclick="irScreen('s2')">‹</button>
+    <div>
+      <div class="hdr-title">Confirmar registro</div>
+      <div class="hdr-sub">Revisa antes de guardar</div>
+    </div>
+  </div>
+  <div class="body">
+
+    <div class="confirm-hero">
+      <div class="confirm-ico">📋</div>
+      <div class="confirm-title" id="c-total">0 guías</div>
+      <div class="confirm-sub" id="c-sub"></div>
+    </div>
+
+    <div class="info-grid" id="c-info"></div>
+
+    <div class="btn-row" style="margin-bottom:10px;">
+      <button class="btn btn-ghost" onclick="irScreen('s2')">← Editar</button>
+      <button class="btn btn-primary" id="btn-guardar" onclick="guardar()">
+        Guardar ↑
+      </button>
+    </div>
+
+    <!-- Guías listadas en confirmar -->
+    <div class="card">
+      <div class="card-hdr">
+        <span class="card-hdr-ico">🗂️</span>
+        <span class="card-hdr-lbl">Guías a registrar</span>
+      </div>
+      <div class="card-body" style="padding:10px 12px;">
+        <div class="guide-list" id="confirm-list"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PANTALLA 4 — ÉXITO
+══════════════════════════════════════════════════ -->
+<div class="screen" id="s4">
+  <div class="success-wrap">
+    <div class="success-ico">🎉</div>
+    <div class="success-title" id="suc-title">¡Guardado!</div>
+    <div class="success-msg" id="suc-msg"></div>
+    <div style="height:32px;"></div>
+    <button class="btn btn-primary" onclick="nuevoMensajero()" style="max-width:320px;">
+      ＋ Registrar otro mensajero
+    </button>
+    <div style="height:10px;"></div>
+    <button class="btn btn-ghost" onclick="irScreen('s2')" style="max-width:320px;">
+      ← Agregar más guías al mismo mensajero
+    </button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG — URL del App Script (oculta al usuario)
+// ═══════════════════════════════════════════════════
+const SHEETS_URL = ''; // ← ADMIN: pegar aquí la URL del App Script implementado como App Web
+// Si está vacío, guarda solo en localStorage como respaldo
+
+// ═══════════════════════════════════════════════════
+// ESTADO GLOBAL
+// ═══════════════════════════════════════════════════
+const G = {
+  guias:     [],       // array de {codigo, tipo}
+  msj:       {},       // {nombre, cedula, zona}
+  scanning:  false,
+  lastScan:  '',       // Para evitar duplicados del mismo frame
+  lastScanTime: 0,
+  stream:    null,
+  detector:  null,
+  rafId:     null,
+  cooldown:  false,    // ms entre lecturas exitosas
+};
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const now = new Date();
+  document.getElementById('hdr-fecha').textContent =
+    now.toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long'});
+
+  // Iniciar BarcodeDetector o ZXing
+  initDetector();
+});
+
+// ═══════════════════════════════════════════════════
+// NAVEGACIÓN
+// ═══════════════════════════════════════════════════
+function irScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+
+function volverS1() {
+  pararCamara();
+  irScreen('s1');
+}
+
+function irEscanear() {
+  const nombre = document.getElementById('f-nombre').value.trim();
+  const cedula = document.getElementById('f-cedula').value.trim();
+  const zona   = document.getElementById('f-zona').value.trim();
+
+  if (!nombre) { toast('Ingresa el nombre del mensajero', 'err'); return; }
+  if (!cedula) { toast('Ingresa la cédula', 'err'); return; }
+  if (!zona)   { toast('Ingresa la zona o ruta', 'err'); return; }
+
+  G.msj = { nombre, cedula, zona };
+
+  document.getElementById('hdr-msj-nombre').textContent = nombre;
+  document.getElementById('hdr-msj-zona').textContent   = zona;
+
+  irScreen('s2');
+  iniciarCamara();
+  renderLista();
+  document.getElementById('manual-inp').focus();
+}
+
+function irConfirmar() {
+  if (!G.guias.length) { toast('Agrega al menos una guía', 'err'); return; }
+  pararCamara();
+  armarConfirm();
+  irScreen('s3');
+}
+
+// ═══════════════════════════════════════════════════
+// TIPO DE GUÍA
+// ═══════════════════════════════════════════════════
+function tipoGuia(c) {
+  const u = c.toUpperCase();
+  if (u.startsWith('PEND'))  return 'PEND';
+  if (u.startsWith('CAF'))   return 'CAF';
+  if (u.startsWith('SAN'))   return 'SAN';
+  if (/^\d+$/.test(u))       return 'ADULT';
+  return 'PEND'; // default
+}
+
+function tipoLabel(t) {
+  return {PEND:'Pendientes',CAF:'Salud Total',SAN:'Sanitas',ADULT:'Adulto Mayor'}[t] || t;
+}
+
+// ═══════════════════════════════════════════════════
+// AGREGAR GUÍA
+// ═══════════════════════════════════════════════════
+function normalizar(raw) {
+  let c = raw.trim().toUpperCase().replace(/\s+/g,'');
+  // Normalizar sin guión: PEND755857 → PEND-755857
+  c = c.replace(/^(PEND|CAF|SAN)(?!-)(\d)/, '$1-$2');
+  return c;
+}
+
+function agregarGuia(raw) {
+  if (!raw || !raw.trim()) return false;
+  const codigo = normalizar(raw);
+  if (!codigo) return false;
+
+  // Evitar duplicado
+  if (G.guias.find(g => g.codigo === codigo)) {
+    toast(`${codigo} ya registrada`, 'err');
+    return false;
+  }
+
+  G.guias.unshift({ codigo, tipo: tipoGuia(codigo) }); // unshift = más reciente arriba
+  renderLista();
+  return true;
+}
+
+function addManual() {
+  const inp = document.getElementById('manual-inp');
+  const val = inp.value.trim();
+  if (!val) return;
+  if (agregarGuia(val)) {
+    inp.value = '';
+    toast(`✓ ${normalizar(val)}`, 'ok');
+  }
+  inp.focus();
+}
+
+function eliminarGuia(i) {
+  G.guias.splice(i, 1);
+  renderLista();
+}
+
+function limpiarTodo() {
+  if (!G.guias.length) return;
+  if (!confirm(`¿Eliminar las ${G.guias.length} guías?`)) return;
+  G.guias = [];
+  renderLista();
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER LISTA
+// ═══════════════════════════════════════════════════
+function renderLista() {
+  const list  = document.getElementById('guideList');
+  const empty = document.getElementById('emptyState');
+  const count = document.getElementById('hdr-count');
+  const btn   = document.getElementById('btn-finalizar');
+
+  const n = G.guias.length;
+  count.textContent = n;
+  btn.disabled = n === 0;
+  empty.style.display = n ? 'none' : '';
+
+  list.innerHTML = G.guias.map((g,i) => `
+    <div class="guide-item">
+      <div class="g-num">${n - i}</div>
+      <div class="g-code">${g.codigo}</div>
+      <div class="g-type tp-${g.tipo}">${tipoLabel(g.tipo)}</div>
+      <button class="g-del" onclick="eliminarGuia(${i})" title="Eliminar">🗑</button>
+    </div>
+  `).join('');
+
+  // Pills
+  const cnt = {PEND:0,CAF:0,SAN:0,ADULT:0};
+  G.guias.forEach(g => cnt[g.tipo]++);
+  const pills = document.getElementById('pills');
+  pills.innerHTML = `<div class="pill pill-total">🔢 ${n}</div>` +
+    (cnt.PEND  ? `<div class="pill pill-PEND">PEND ${cnt.PEND}</div>` : '') +
+    (cnt.CAF   ? `<div class="pill pill-CAF">CAF ${cnt.CAF}</div>` : '') +
+    (cnt.SAN   ? `<div class="pill pill-SAN">SAN ${cnt.SAN}</div>` : '') +
+    (cnt.ADULT ? `<div class="pill pill-ADULT">AM ${cnt.ADULT}</div>` : '');
+}
+
+// ═══════════════════════════════════════════════════
+// CÁMARA + ESCANEO (BarcodeDetector nativo → ZXing fallback)
+// ═══════════════════════════════════════════════════
+async function initDetector() {
+  if ('BarcodeDetector' in window) {
+    try {
+      G.detector = new BarcodeDetector({
+        formats: ['code_128','code_39','ean_13','ean_8','qr_code','pdf417','data_matrix','aztec','itf']
+      });
+      console.log('BarcodeDetector nativo OK');
+    } catch(e) {
+      G.detector = null;
+    }
+  }
+  // Si no hay detector nativo, cargamos ZXing
+  if (!G.detector) {
+    await cargarZXing();
+  }
+}
+
+function cargarZXing() {
+  return new Promise((resolve) => {
+    if (window.ZXing) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/@zxing/library@latest/umd/index.min.js';
+    s.onload = resolve;
+    s.onerror = resolve; // falla silenciosamente
+    document.head.appendChild(s);
+  });
+}
+
+async function iniciarCamara() {
+  if (G.stream) return;
+  const video = document.getElementById('camVideo');
+  const status = document.getElementById('camStatus');
+
+  try {
+    G.stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: 'environment' },
+        width:  { ideal: 1280 },
+        height: { ideal: 720 },
+      }
+    });
+    video.srcObject = G.stream;
+    await video.play();
+    G.scanning = true;
+    status.innerHTML = `<div class="cam-dot"></div><span>Cámara activa — escaneando...</span>`;
+    escanearLoop();
+  } catch(e) {
+    G.scanning = false;
+    status.style.background = 'rgba(239,68,68,.6)';
+    status.innerHTML = `<span>⚠️ Sin acceso a cámara — usa el campo manual</span>`;
+    document.getElementById('manual-inp').focus();
+  }
+}
+
+function pararCamara() {
+  G.scanning = false;
+  if (G.rafId) { cancelAnimationFrame(G.rafId); G.rafId = null; }
+  if (G.stream) {
+    G.stream.getTracks().forEach(t => t.stop());
+    G.stream = null;
+  }
+  const video = document.getElementById('camVideo');
+  video.srcObject = null;
+}
+
+async function escanearLoop() {
+  if (!G.scanning) return;
+  const video = document.getElementById('camVideo');
+  if (video.readyState < 2) {
+    G.rafId = requestAnimationFrame(escanearLoop);
+    return;
+  }
+
+  if (G.detector) {
+    // BarcodeDetector nativo — ultra rápido
+    try {
+      const barcodes = await G.detector.detect(video);
+      if (barcodes.length > 0) {
+        const raw = barcodes[0].rawValue;
+        onScanResult(raw);
+      }
+    } catch(e) {}
+    G.rafId = requestAnimationFrame(escanearLoop);
+  } else if (window.ZXing) {
+    // ZXing fallback
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      const reader = new ZXing.BrowserMultiFormatReader();
+      const result = await reader.decodeFromCanvas(canvas);
+      if (result) onScanResult(result.getText());
+    } catch(e) {}
+    // ZXing es más pesado, dar un pequeño respiro
+    setTimeout(() => { G.rafId = requestAnimationFrame(escanearLoop); }, 80);
+  } else {
+    // Sin detector — solo manual
+    G.rafId = requestAnimationFrame(escanearLoop);
+  }
+}
+
+function onScanResult(raw) {
+  if (!raw || !raw.trim()) return;
+  // Cooldown: no procesar el mismo código en < 1.5s
+  const now = Date.now();
+  if (G.cooldown) return;
+  if (raw === G.lastScan && now - G.lastScanTime < 2000) return;
+
+  G.lastScan     = raw;
+  G.lastScanTime = now;
+  G.cooldown     = true;
+  setTimeout(() => { G.cooldown = false; }, 1200);
+
+  const ok = agregarGuia(raw);
+  if (ok) {
+    const codigo = normalizar(raw);
+    const tipo   = tipoGuia(codigo);
+
+    // Flash visual
+    const flash = document.getElementById('flash');
+    flash.classList.add('show');
+    setTimeout(() => flash.classList.remove('show'), 180);
+
+    // Vibración háptica
+    if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
+
+    // Mostrar última guía escaneada
+    const last = document.getElementById('camLast');
+    document.getElementById('lastCode').textContent = codigo;
+    document.getElementById('lastType').textContent = tipoLabel(tipo);
+    last.style.display = '';
+
+    toast(`✓ ${codigo}`, 'ok');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// CONFIRMAR
+// ═══════════════════════════════════════════════════
+function armarConfirm() {
+  const n = G.guias.length;
+  const cnt = {PEND:0,CAF:0,SAN:0,ADULT:0};
+  G.guias.forEach(g => cnt[g.tipo]++);
+
+  document.getElementById('c-total').textContent = `${n} guía${n!==1?'s':''}`;
+  document.getElementById('c-sub').textContent =
+    `Para ${G.msj.nombre} · Zona: ${G.msj.zona}`;
+
+  document.getElementById('c-info').innerHTML = [
+    ['Mensajero',  G.msj.nombre],
+    ['Cédula',     G.msj.cedula],
+    ['Zona',       G.msj.zona],
+    ['Fecha/Hora', new Date().toLocaleString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})],
+    ['Total guías', n],
+    ...(cnt.PEND  ? [['Pendientes',   cnt.PEND]]  : []),
+    ...(cnt.CAF   ? [['Salud Total',  cnt.CAF]]   : []),
+    ...(cnt.SAN   ? [['Sanitas',      cnt.SAN]]   : []),
+    ...(cnt.ADULT ? [['Adulto Mayor', cnt.ADULT]] : []),
+  ].map(([l,v]) => `
+    <div class="info-row">
+      <span class="info-lbl">${l}</span>
+      <span class="info-val">${v}</span>
+    </div>`).join('');
+
+  // Lista compacta en confirmar
+  document.getElementById('confirm-list').innerHTML = G.guias.map((g,i) => `
+    <div class="guide-item">
+      <div class="g-num">${G.guias.length - i}</div>
+      <div class="g-code">${g.codigo}</div>
+      <div class="g-type tp-${g.tipo}">${tipoLabel(g.tipo)}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// GUARDAR
+// ═══════════════════════════════════════════════════
+function buildPayload() {
+  const now = new Date();
+  return {
+    fecha:       now.toISOString(),
+    fecha_human: now.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'}),
+    hora:        now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
+    mensajero:   G.msj.nombre,
+    cedula:      G.msj.cedula,
+    zona:        G.msj.zona,
+    total:       G.guias.length,
+    guias: G.guias.map(g => ({
+      codigo:      g.codigo,
+      tipo:        g.tipo,
+      tipo_label:  tipoLabel(g.tipo),
+    })),
+  };
+}
+
+async function guardar() {
+  const btn = document.getElementById('btn-guardar');
+  btn.disabled = true;
+  btn.textContent = '⏳ Guardando...';
+
+  const payload = buildPayload();
+
+  // Guardar local siempre
+  guardarLocal(payload);
+
+  // Enviar a Sheets si hay URL
+  let enviado = false;
+  if (SHEETS_URL) {
+    try {
+      await fetch(SHEETS_URL, {
+        method: 'POST',
+        mode:   'no-cors',
+        headers:{'Content-Type':'text/plain'},
+        body:   JSON.stringify(payload),
+      });
+      enviado = true;
+    } catch(e) {
+      try {
+        const q = new URLSearchParams({ data: JSON.stringify(payload) });
+        await fetch(`${SHEETS_URL}?${q}`, { method:'GET', mode:'no-cors' });
+        enviado = true;
+      } catch(e2) { enviado = false; }
+    }
+  }
+
+  // Éxito
+  const n = G.guias.length;
+  document.getElementById('suc-title').textContent = `¡${n} guía${n!==1?'s':''} guardada${n!==1?'s':''}!`;
+  document.getElementById('suc-msg').textContent =
+    `${G.msj.nombre} · ${G.msj.zona}\n${payload.fecha_human} ${payload.hora}` +
+    (!enviado && SHEETS_URL ? '\n\n⚠️ Sin conexión — guardado local' : '');
+
+  btn.disabled  = false;
+  btn.textContent = 'Guardar ↑';
+  irScreen('s4');
+}
+
+function guardarLocal(payload) {
+  try {
+    const hist = JSON.parse(localStorage.getItem('cafam_hist') || '[]');
+    hist.unshift(payload);
+    if (hist.length > 200) hist.pop();
+    localStorage.setItem('cafam_hist', JSON.stringify(hist));
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════
+// NUEVO MENSAJERO
+// ═══════════════════════════════════════════════════
+function nuevoMensajero() {
+  G.guias = [];
+  G.msj   = {};
+  document.getElementById('f-nombre').value = '';
+  document.getElementById('f-cedula').value = '';
+  document.getElementById('f-zona').value   = '';
+  document.getElementById('manual-inp').value = '';
+  renderLista();
+  irScreen('s1');
+  document.getElementById('f-nombre').focus();
+}
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+let _tt;
+function toast(msg, tipo='info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast show ${tipo}`;
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ═══════════════════════════════════════════════════
+// PERMISOS CÁMARA AL ENTRAR A S2
+// ═══════════════════════════════════════════════════
+// También re-iniciar cámara si vuelven a s2 desde s3
+document.getElementById('s2').addEventListener('transitionend', () => {
+  if (document.getElementById('s2').classList.contains('on') && !G.stream) {
+    iniciarCamara();
+  }
+});
+</script>
+</body>
+</html>
