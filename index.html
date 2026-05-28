@@ -354,34 +354,26 @@ textarea{resize:none;height:80px;}
             autocomplete="off" autocorrect="off" spellcheck="false"
             inputmode="text">
         </div>
-        <div class="field">
-          <label class="lbl">Cédula</label>
-          <input type="tel" id="f-cedula" placeholder="Número de cédula"
-            autocomplete="off" inputmode="numeric">
-        </div>
         <div class="field" style="margin-bottom:0">
           <label class="lbl">Zona / Ruta</label>
           <select id="f-zona" style="font-size:16px;font-weight:700;padding:14px 16px;">
             <option value="">— Selecciona la zona —</option>
-            <option value="NORTE ABAJO">🔵 NORTE ABAJO</option>
-            <option value="SUBA">🟢 Suba</option>
-            <option value="BOSA">🟡 Bosa</option>
-            <option value="KENNEDY">🟠 Kennedy</option>
-            <option value="FONTIBÓN">🔴 Fontibón</option>
-            <option value="CHAPINERO">🟣 Chapinero</option>
-            <option value="USAQUÉN">🔵 Usaquén</option>
-            <option value="TEUSAQUILLO">🟢 Teusaquillo</option>
-            <option value="BARRIOS UNIDOS">🟡 Barrios Unidos</option>
-            <option value="LOS MÁRTIRES">🟠 Los Mártires</option>
-            <option value="PUENTE ARANDA">🔴 Puente Aranda</option>
-            <option value="SANTA FE">🟣 Santa Fe</option>
-            <option value="SAN CRISTÓBAL">🔵 San Cristóbal</option>
-            <option value="USME">🟢 Usme</option>
-            <option value="TUNJUELITO">🟡 Tunjuelito</option>
-            <option value="CIUDAD BOLÍVAR">🟠 Ciudad Bolívar</option>
-            <option value="RAFAEL URIBE">🔴 Rafael Uribe Uribe</option>
-            <option value="ANTONIO NARIÑO">🟣 Antonio Nariño</option>
-            <option value="LA CANDELARIA">🔵 La Candelaria</option>
+            <option value="SUBA">📍SUBA</option>
+            <option value="NORTE ABAJO">📍NORTE ABAJO</option>
+            <option value="NORTE ARRIBA">📍NORTE ARRIBA</option>
+            <option value="ENGATIVA NORTE">📍ENGATIVA NORTE</option>
+            <option value="ENGATIVA SUR">📍ENGATIVA SUR</option>
+            <option value="TINTAL">📍TINTAL</option>
+            <option value="KENNEDY">📍KENNEDY</option>
+            <option value="BOSA">📍BOSA</option>
+            <option value="FONTIBON">📍FONTIBON</option>
+            <option value="VENECIA">📍VENECIA</option>
+            <option value="TUNAL">📍TUNAL</option>
+            <option value="SAN CRISTOBAL SUR">📍SAN CRISTOBAL SUR</option>
+            <option value="MOLINOS">📍MOLINOS</option>
+            <option value="CIUDAD BOLIVAR">📍CIUDAAD BOLIVAR</option>
+            <option value="USME">📍USME</option>
+            <option value="SOACHA">📍SOACHA</option>
           </select>
         </div>
       </div>
@@ -547,7 +539,7 @@ const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwfYkUJo924s21bvdsmZ
 // ═══════════════════════════════════════════════════
 const G = {
   guias:     [],       // array de {codigo, tipo}
-  msj:       {},       // {nombre, cedula, zona}
+  msj:       {},       // {nombre, zona}
   scanning:  false,
   lastScan:  '',       // Para evitar duplicados del mismo frame
   lastScanTime: 0,
@@ -584,14 +576,12 @@ function volverS1() {
 
 function irEscanear() {
   const nombre = document.getElementById('f-nombre').value.trim();
-  const cedula = document.getElementById('f-cedula').value.trim();
   const zona   = document.getElementById('f-zona').value.trim();
 
   if (!nombre) { toast('Ingresa el nombre del mensajero', 'err'); return; }
-  if (!cedula) { toast('Ingresa la cédula', 'err'); return; }
   if (!zona)   { toast('Ingresa la zona o ruta', 'err'); return; }
 
-  G.msj = { nombre, cedula, zona };
+  G.msj = { nombre, zona };
 
   document.getElementById('hdr-msj-nombre').textContent = nombre;
   document.getElementById('hdr-msj-zona').textContent   = zona;
@@ -863,7 +853,6 @@ function armarConfirm() {
 
   document.getElementById('c-info').innerHTML = [
     ['Mensajero',  G.msj.nombre],
-    ['Cédula',     G.msj.cedula],
     ['Zona',       G.msj.zona],
     ['Fecha/Hora', new Date().toLocaleString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})],
     ['Total guías', n],
@@ -896,7 +885,7 @@ function buildPayload() {
     fecha_human: now.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'}),
     hora:        now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
     mensajero:   G.msj.nombre,
-    cedula:      G.msj.cedula,
+    cedula:      '',
     zona:        G.msj.zona,
     total:       G.guias.length,
     guias: G.guias.map(g => ({
@@ -965,7 +954,6 @@ function nuevoMensajero() {
   G.guias = [];
   G.msj   = {};
   document.getElementById('f-nombre').value = '';
-  document.getElementById('f-cedula').value = '';
   document.getElementById('f-zona').value   = '';
   document.getElementById('manual-inp').value = '';
   renderLista();
