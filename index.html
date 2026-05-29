@@ -349,10 +349,19 @@ textarea{resize:none;height:80px;}
       </div>
       <div class="card-body">
         <div class="field">
+          <label class="lbl">Tipo de vehículo</label>
+          <select id="f-vehiculo" onchange="cargarMensajeros()" style="font-size:16px;font-weight:700;padding:14px 16px;">
+            <option value="">— Selecciona el vehículo —</option>
+            <option value="MOTORIZADO">MOTORIZADO</option>
+            <option value="CARRY">CARRY</option>
+          </select>
+        </div>
+        <div class="field">
           <label class="lbl">Nombre completo</label>
-          <input type="text" id="f-nombre" placeholder="Nombre del mensajero"
+          <input type="text" id="f-nombre" list="lista-mensajeros" placeholder="Escribe o selecciona el mensajero"
             autocomplete="off" autocorrect="off" spellcheck="false"
             inputmode="text">
+          <datalist id="lista-mensajeros"></datalist>
         </div>
         <div class="field" style="margin-bottom:0">
           <label class="lbl">Zona / Ruta</label>
@@ -536,7 +545,7 @@ textarea{resize:none;height:80px;}
 // ═══════════════════════════════════════════════════
 // CONFIG — URL del App Script (oculta al usuario)
 // ═══════════════════════════════════════════════════
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwfYkUJo924s21bvdsmZOAdREBqcyR4aJH1-o3oHqrTna01tO9_iZ1UKBztF4Bo0LdBFw/exec'; // ← ADMIN: pegar aquí la URL del App Script implementado como App Web
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwy-YJYstLKaq5GSrWsdOQBs2FQF62g0jnDhLHBQ9RrlO3nUqiv-hb3SRdjabbPdw01/exec'; // ← ADMIN: pegar aquí la URL del App Script implementado como App Web
 // Si está vacío, guarda solo en localStorage como respaldo
 
 // ═══════════════════════════════════════════════════
@@ -566,6 +575,39 @@ document.addEventListener('DOMContentLoaded', () => {
   initDetector();
 });
 
+function cargarMensajeros() {
+  const vehiculo = document.getElementById('f-vehiculo').value.trim();
+  const lista = document.getElementById('lista-mensajeros');
+  const nombre = document.getElementById('f-nombre');
+  lista.innerHTML = '';
+  nombre.value = '';
+
+  if (!vehiculo || !SHEETS_URL) return;
+
+  const cb = `mensajeros_${Date.now()}`;
+  window[cb] = (resp) => {
+    try {
+      lista.innerHTML = (resp.nombres || [])
+        .map(n => `<option value="${String(n).replace(/"/g, '&quot;')}"></option>`)
+        .join('');
+    } finally {
+      delete window[cb];
+      const s = document.getElementById(cb);
+      if (s) s.remove();
+    }
+  };
+
+  const s = document.createElement('script');
+  s.id = cb;
+  s.src = `${SHEETS_URL}?action=mensajeros&vehiculo=${encodeURIComponent(vehiculo)}&callback=${cb}`;
+  s.onerror = () => {
+    delete window[cb];
+    s.remove();
+    toast('No se pudo cargar la lista de mensajeros', 'err');
+  };
+  document.head.appendChild(s);
+}
+
 // ═══════════════════════════════════════════════════
 // NAVEGACIÓN
 // ═══════════════════════════════════════════════════
@@ -580,13 +622,15 @@ function volverS1() {
 }
 
 function irEscanear() {
+  const vehiculo = document.getElementById('f-vehiculo').value.trim();
   const nombre = document.getElementById('f-nombre').value.trim();
   const zona   = document.getElementById('f-zona').value.trim();
 
+  if (!vehiculo) { toast('Selecciona el tipo de vehículo', 'err'); return; }
   if (!nombre) { toast('Ingresa el nombre del mensajero', 'err'); return; }
   if (!zona)   { toast('Ingresa la zona o ruta', 'err'); return; }
 
-  G.msj = { nombre, zona };
+  G.msj = { nombre, zona, vehiculo };
 
   document.getElementById('hdr-msj-nombre').textContent = nombre;
   document.getElementById('hdr-msj-zona').textContent   = zona;
@@ -857,6 +901,7 @@ function armarConfirm() {
     `Para ${G.msj.nombre} · Zona: ${G.msj.zona}`;
 
   document.getElementById('c-info').innerHTML = [
+    ['Tipo de vehículo', G.msj.vehiculo],
     ['Mensajero',  G.msj.nombre],
     ['Zona',       G.msj.zona],
     ['Fecha/Hora', new Date().toLocaleString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})],
@@ -891,6 +936,7 @@ function buildPayload() {
     hora:        now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
     mensajero:   G.msj.nombre,
     cedula:      '',
+    vehiculo:    G.msj.vehiculo,
     zona:        G.msj.zona,
     total:       G.guias.length,
     guias: G.guias.map(g => ({
@@ -958,7 +1004,9 @@ function guardarLocal(payload) {
 function nuevoMensajero() {
   G.guias = [];
   G.msj   = {};
+  document.getElementById('f-vehiculo').value = '';
   document.getElementById('f-nombre').value = '';
+  document.getElementById('lista-mensajeros').innerHTML = '';
   document.getElementById('f-zona').value   = '';
   document.getElementById('manual-inp').value = '';
   renderLista();
