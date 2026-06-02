@@ -216,12 +216,13 @@ textarea{resize:none;height:80px;}
 /* ── GUIDE LIST ───────────────────────────────────── */
 .guide-list{display:flex;flex-direction:column;gap:6px;}
 .guide-item{
-  display:flex;align-items:center;gap:10px;
   background:var(--card2);border:1px solid var(--border);
   border-radius:10px;padding:10px 12px;
   animation:slideIn .18s ease;
+  display:flex;flex-direction:column;gap:6px;
 }
 @keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.g-row{display:flex;align-items:center;gap:10px;}
 .g-num{
   width:24px;height:24px;border-radius:50%;
   background:var(--border);color:var(--txt2);
@@ -238,6 +239,19 @@ textarea{resize:none;height:80px;}
 .tp-CAF  {background:rgba(34,197,94,.2);color:#6EE7A0;}
 .tp-SAN  {background:rgba(245,158,11,.2);color:#FCD34D;}
 .tp-ADULT{background:rgba(168,85,247,.2);color:#D8B4FE;}
+
+/* ── ★ NUEVO: badge tirilla ── */
+.g-tirilla{
+  font-size:10px;font-weight:700;padding:3px 8px;
+  border-radius:99px;flex-shrink:0;letter-spacing:.3px;
+}
+.tt-NORMAL       {background:rgba(20,184,166,.15);color:var(--teal);}
+.tt-TRANSFERENCIA{background:rgba(245,158,11,.15);color:var(--amber);}
+.tt-PAPELERIA    {background:rgba(168,85,247,.15);color:var(--purple);}
+
+/* ── ★ NUEVO: observación en lista ── */
+.g-obs{font-size:11px;color:var(--txt2);font-style:italic;padding-left:34px;}
+
 .g-del{
   background:none;border:none;cursor:pointer;
   font-size:18px;padding:2px 4px;border-radius:6px;
@@ -325,6 +339,65 @@ textarea{resize:none;height:80px;}
 .sep{height:1px;background:var(--border);margin:4px 0 14px;}
 .btn-row{display:flex;gap:8px;}
 .btn-row .btn{flex:1;}
+
+/* ══════════════════════════════════════════════════
+   ★ NUEVO: PANEL DESLIZANTE — DETALLES DE GUÍA
+══════════════════════════════════════════════════ */
+.panel-overlay{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+}
+.panel-overlay.open{opacity:1;pointer-events:all;}
+
+.scan-panel{
+  position:fixed;bottom:0;left:0;right:0;z-index:301;
+  background:var(--card);
+  border-top:1.5px solid var(--border2);
+  border-radius:20px 20px 0 0;
+  padding:0 16px calc(env(safe-area-inset-bottom,0px) + 20px);
+  transform:translateY(105%);
+  transition:transform .3s cubic-bezier(.34,1.05,.64,1);
+  max-height:88vh;overflow-y:auto;
+}
+.scan-panel.open{transform:translateY(0);}
+
+.panel-drag{
+  width:40px;height:4px;border-radius:99px;
+  background:var(--border2);margin:12px auto 18px;
+}
+.panel-code-row{
+  display:flex;align-items:center;gap:10px;margin-bottom:6px;
+}
+.panel-code-lbl{
+  font-size:10px;color:var(--txt2);
+  text-transform:uppercase;letter-spacing:.8px;
+}
+.panel-code{
+  font-family:var(--mono);font-size:20px;font-weight:700;
+  color:var(--teal);word-break:break-all;
+  margin-bottom:20px;
+}
+
+.panel-section{margin-bottom:18px;}
+
+/* Chips de tipo de tirilla */
+.tirilla-chips{display:flex;gap:8px;margin-top:8px;}
+.tchip{
+  flex:1;padding:13px 6px;text-align:center;
+  background:var(--card2);border:1.5px solid var(--border);
+  border-radius:12px;font-size:12px;font-weight:700;
+  cursor:pointer;color:var(--txt2);
+  transition:all .15s;line-height:1.6;
+  -webkit-user-select:none;
+}
+.tchip span{font-size:22px;display:block;margin-bottom:3px;}
+.tchip:active{transform:scale(.93);}
+.tchip.sel-NORMAL       {border-color:var(--teal);  background:rgba(20,184,166,.12); color:var(--teal);}
+.tchip.sel-TRANSFERENCIA{border-color:var(--amber); background:rgba(245,158,11,.12); color:var(--amber);}
+.tchip.sel-PAPELERIA    {border-color:var(--purple);background:rgba(168,85,247,.12); color:var(--purple);}
 </style>
 </head>
 <body>
@@ -383,8 +456,6 @@ textarea{resize:none;height:80px;}
             <option value="CIUDAD BOLIVAR">📍CIUDAAD BOLIVAR</option>
             <option value="USME">📍USME</option>
             <option value="SOACHA">📍SOACHA</option>
-            <option value="NORTE ARRIBA">📍NORTE ARRIBA</option>
-            <option value="NORTE ABAJO">📍NORTE ABAJO</option>
             <option value="SUR ARRIBA">📍SUR ARRIBA</option>
             <option value="SUR ABAJO">📍SUR ABAJO</option>
             <option value="BODEGA">📦BODEGA</option>
@@ -541,26 +612,69 @@ textarea{resize:none;height:80px;}
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- ══════════════════════════════════════════════════
+     ★ NUEVO: OVERLAY + PANEL DESLIZANTE DE DETALLES
+══════════════════════════════════════════════════ -->
+<div class="panel-overlay" id="panelOverlay" onclick="cerrarPanel()"></div>
+
+<div class="scan-panel" id="scanPanel">
+  <div class="panel-drag"></div>
+
+  <div class="panel-code-lbl">Guía detectada</div>
+  <div class="panel-code" id="panelCode">—</div>
+
+  <!-- Tipo de tirilla -->
+  <div class="panel-section">
+    <label class="lbl">Tipo de tirilla</label>
+    <div class="tirilla-chips">
+      <div class="tchip" id="tc-NORMAL"        onclick="selTirilla('NORMAL')">
+        <span>📄</span>Normal
+      </div>
+      <div class="tchip" id="tc-TRANSFERENCIA" onclick="selTirilla('TRANSFERENCIA')">
+        <span>🔄</span>Transferencia
+      </div>
+      <div class="tchip" id="tc-PAPELERIA"     onclick="selTirilla('PAPELERIA')">
+        <span>📋</span>Papelería
+      </div>
+    </div>
+  </div>
+
+  <!-- Observación -->
+  <div class="panel-section">
+    <label class="lbl" for="panel-obs">Observación (opcional)</label>
+    <textarea id="panel-obs" placeholder="Ej: paquete dañado, dirección incompleta, sin recibir…"></textarea>
+  </div>
+
+  <!-- Botones -->
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="cerrarPanel()">Cancelar</button>
+    <button class="btn btn-green" onclick="confirmarPanel()">✓ Agregar guía</button>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════
 // CONFIG — URL del App Script (oculta al usuario)
 // ═══════════════════════════════════════════════════
-const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwy-YJYstLKaq5GSrWsdOQBs2FQF62g0jnDhLHBQ9RrlO3nUqiv-hb3SRdjabbPdw01/exec'; // ← ADMIN: pegar aquí la URL del App Script implementado como App Web
-// Si está vacío, guarda solo en localStorage como respaldo
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycby7ZFTTxL8fk1dsHU6YXdJE2pUAtHctI4Xi0HD-GmcBVm3QxPQr1wQ5L7sst3JInsHAoQ/exec';
 
 // ═══════════════════════════════════════════════════
 // ESTADO GLOBAL
 // ═══════════════════════════════════════════════════
 const G = {
-  guias:     [],       // array de {codigo, tipo}
-  msj:       {},       // {nombre, zona}
-  scanning:  false,
-  lastScan:  '',       // Para evitar duplicados del mismo frame
+  guias:        [],      // {codigo, tipo, tipoTirilla, observacion}
+  msj:          {},      // {nombre, zona, vehiculo}
+  scanning:     false,
+  lastScan:     '',
   lastScanTime: 0,
-  stream:    null,
-  detector:  null,
-  rafId:     null,
-  cooldown:  false,    // ms entre lecturas exitosas
+  stream:       null,
+  detector:     null,
+  rafId:        null,
+  cooldown:     false,
+  // ★ NUEVO
+  panelOpen:    false,
+  pendingRaw:   null,
+  pendingTirilla: null,
 };
 
 // ═══════════════════════════════════════════════════
@@ -570,8 +684,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const now = new Date();
   document.getElementById('hdr-fecha').textContent =
     now.toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long'});
-
-  // Iniciar BarcodeDetector o ZXing
   initDetector();
 });
 
@@ -623,12 +735,12 @@ function volverS1() {
 
 function irEscanear() {
   const vehiculo = document.getElementById('f-vehiculo').value.trim();
-  const nombre = document.getElementById('f-nombre').value.trim();
-  const zona   = document.getElementById('f-zona').value.trim();
+  const nombre   = document.getElementById('f-nombre').value.trim();
+  const zona     = document.getElementById('f-zona').value.trim();
 
   if (!vehiculo) { toast('Selecciona el tipo de vehículo', 'err'); return; }
-  if (!nombre) { toast('Ingresa el nombre del mensajero', 'err'); return; }
-  if (!zona)   { toast('Ingresa la zona o ruta', 'err'); return; }
+  if (!nombre)   { toast('Ingresa el nombre del mensajero', 'err'); return; }
+  if (!zona)     { toast('Ingresa la zona o ruta', 'err'); return; }
 
   G.msj = { nombre, zona, vehiculo };
 
@@ -649,7 +761,7 @@ function irConfirmar() {
 }
 
 // ═══════════════════════════════════════════════════
-// TIPO DE GUÍA
+// TIPO CAMPAÑA (auto-detectado del código)
 // ═══════════════════════════════════════════════════
 function tipoGuia(c) {
   const u = c.toUpperCase();
@@ -657,7 +769,7 @@ function tipoGuia(c) {
   if (u.startsWith('CAF'))   return 'CAF';
   if (u.startsWith('SAN'))   return 'SAN';
   if (/^\d+$/.test(u))       return 'ADULT';
-  return 'PEND'; // default
+  return 'PEND';
 }
 
 function tipoLabel(t) {
@@ -665,40 +777,135 @@ function tipoLabel(t) {
 }
 
 // ═══════════════════════════════════════════════════
-// AGREGAR GUÍA
+// NORMALIZAR
 // ═══════════════════════════════════════════════════
 function normalizar(raw) {
   let c = raw.trim().toUpperCase().replace(/\s+/g,'');
-  // Normalizar sin guión: PEND755857 → PEND-755857
   c = c.replace(/^(PEND|CAF|SAN)(?!-)(\d)/, '$1-$2');
   return c;
 }
 
-function agregarGuia(raw) {
-  if (!raw || !raw.trim()) return false;
-  const codigo = normalizar(raw);
-  if (!codigo) return false;
+// ═══════════════════════════════════════════════════
+// ★ NUEVO — PANEL DE DETALLES DE GUÍA
+// ═══════════════════════════════════════════════════
+function mostrarPanel(raw) {
+  if (G.panelOpen) return;
 
-  // Evitar duplicado
+  const codigo = normalizar(raw);
+  if (!codigo) return;
+
   if (G.guias.find(g => g.codigo === codigo)) {
     toast(`${codigo} ya registrada`, 'err');
-    return false;
+    return;
   }
 
-  G.guias.unshift({ codigo, tipo: tipoGuia(codigo) }); // unshift = más reciente arriba
-  renderLista();
-  return true;
+  G.pendingRaw     = raw;
+  G.pendingTirilla = null;
+  G.panelOpen      = true;
+
+  // Pausa el scanner mientras el panel está abierto
+  G.scanning = false;
+  if (G.rafId) { cancelAnimationFrame(G.rafId); G.rafId = null; }
+
+  // Reset visual del panel
+  document.getElementById('panelCode').textContent = codigo;
+  document.getElementById('panel-obs').value = '';
+  document.querySelectorAll('.tchip').forEach(c => {
+    c.className = 'tchip';
+  });
+
+  document.getElementById('panelOverlay').classList.add('open');
+  document.getElementById('scanPanel').classList.add('open');
+
+  // Foco en observación después de la animación
+  setTimeout(() => document.getElementById('panel-obs').focus(), 320);
 }
 
+function cerrarPanel() {
+  G.panelOpen      = false;
+  G.pendingRaw     = null;
+  G.pendingTirilla = null;
+  G.cooldown       = false;
+  G.lastScan       = '';
+
+  document.getElementById('panelOverlay').classList.remove('open');
+  document.getElementById('scanPanel').classList.remove('open');
+
+  // Limpiar input manual
+  const inp = document.getElementById('manual-inp');
+  if (inp) inp.value = '';
+
+  // Reanudar escaneo si estamos en pantalla 2 y la cámara sigue activa
+  if (document.getElementById('s2').classList.contains('on') && G.stream) {
+    G.scanning = true;
+    escanearLoop();
+  }
+
+  if (inp && document.getElementById('s2').classList.contains('on')) inp.focus();
+}
+
+function selTirilla(tipo) {
+  G.pendingTirilla = tipo;
+  document.querySelectorAll('.tchip').forEach(c => {
+    c.className = 'tchip' + (c.id === `tc-${tipo}` ? ` sel-${tipo}` : '');
+  });
+}
+
+function confirmarPanel() {
+  if (!G.pendingTirilla) {
+    toast('Selecciona el tipo de tirilla', 'err');
+    return;
+  }
+
+  const codigo    = normalizar(G.pendingRaw);
+  const tirilla   = G.pendingTirilla;
+  const observ    = document.getElementById('panel-obs').value.trim();
+
+  // Doble-check duplicado
+  if (G.guias.find(g => g.codigo === codigo)) {
+    toast(`${codigo} ya registrada`, 'err');
+    cerrarPanel();
+    return;
+  }
+
+  // Agregar a la lista
+  G.guias.unshift({ codigo, tipo: tipoGuia(codigo), tipoTirilla: tirilla, observacion: observ });
+  renderLista();
+
+  // Flash + vibración
+  const flash = document.getElementById('flash');
+  flash.classList.add('show');
+  setTimeout(() => flash.classList.remove('show'), 180);
+  if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
+
+  // Actualizar "Última guía"
+  const last = document.getElementById('camLast');
+  document.getElementById('lastCode').textContent = codigo;
+  document.getElementById('lastType').textContent = `${tipoLabel(tipoGuia(codigo))} · ${tirilla}`;
+  last.style.display = '';
+
+  toast(`✓ ${codigo} · ${tirilla}`, 'ok');
+  cerrarPanel();
+}
+
+// ═══════════════════════════════════════════════════
+// AGREGAR / ELIMINAR GUÍAS
+// ═══════════════════════════════════════════════════
 function addManual() {
   const inp = document.getElementById('manual-inp');
   const val = inp.value.trim();
   if (!val) return;
-  if (agregarGuia(val)) {
+
+  const codigo = normalizar(val);
+  if (G.guias.find(g => g.codigo === codigo)) {
+    toast(`${codigo} ya registrada`, 'err');
     inp.value = '';
-    toast(`✓ ${normalizar(val)}`, 'ok');
+    inp.focus();
+    return;
   }
-  inp.focus();
+
+  // ★ Abrir panel en vez de agregar directo
+  mostrarPanel(val);
 }
 
 function eliminarGuia(i) {
@@ -714,7 +921,7 @@ function limpiarTodo() {
 }
 
 // ═══════════════════════════════════════════════════
-// RENDER LISTA
+// RENDER LISTA  ★ actualizado con tirilla + observación
 // ═══════════════════════════════════════════════════
 function renderLista() {
   const list  = document.getElementById('guideList');
@@ -729,14 +936,18 @@ function renderLista() {
 
   list.innerHTML = G.guias.map((g,i) => `
     <div class="guide-item">
-      <div class="g-num">${n - i}</div>
-      <div class="g-code">${g.codigo}</div>
-      <div class="g-type tp-${g.tipo}">${tipoLabel(g.tipo)}</div>
-      <button class="g-del" onclick="eliminarGuia(${i})" title="Eliminar">🗑</button>
+      <div class="g-row">
+        <div class="g-num">${n - i}</div>
+        <div class="g-code">${g.codigo}</div>
+        <div class="g-type tp-${g.tipo}">${tipoLabel(g.tipo)}</div>
+        ${g.tipoTirilla ? `<div class="g-tirilla tt-${g.tipoTirilla}">${g.tipoTirilla}</div>` : ''}
+        <button class="g-del" onclick="eliminarGuia(${i})" title="Eliminar">🗑</button>
+      </div>
+      ${g.observacion ? `<div class="g-obs">💬 ${g.observacion}</div>` : ''}
     </div>
   `).join('');
 
-  // Pills
+  // Pills (sin cambios)
   const cnt = {PEND:0,CAF:0,SAN:0,ADULT:0};
   G.guias.forEach(g => cnt[g.tipo]++);
   const pills = document.getElementById('pills');
@@ -748,7 +959,7 @@ function renderLista() {
 }
 
 // ═══════════════════════════════════════════════════
-// CÁMARA + ESCANEO (BarcodeDetector nativo → ZXing fallback)
+// CÁMARA + ESCANEO — sin cambios excepto onScanResult
 // ═══════════════════════════════════════════════════
 async function initDetector() {
   if ('BarcodeDetector' in window) {
@@ -756,15 +967,9 @@ async function initDetector() {
       G.detector = new BarcodeDetector({
         formats: ['code_128','code_39','ean_13','ean_8','qr_code','pdf417','data_matrix','aztec','itf']
       });
-      console.log('BarcodeDetector nativo OK');
-    } catch(e) {
-      G.detector = null;
-    }
+    } catch(e) { G.detector = null; }
   }
-  // Si no hay detector nativo, cargamos ZXing
-  if (!G.detector) {
-    await cargarZXing();
-  }
+  if (!G.detector) await cargarZXing();
 }
 
 function cargarZXing() {
@@ -773,23 +978,19 @@ function cargarZXing() {
     const s = document.createElement('script');
     s.src = 'https://unpkg.com/@zxing/library@latest/umd/index.min.js';
     s.onload = resolve;
-    s.onerror = resolve; // falla silenciosamente
+    s.onerror = resolve;
     document.head.appendChild(s);
   });
 }
 
 async function iniciarCamara() {
   if (G.stream) return;
-  const video = document.getElementById('camVideo');
+  const video  = document.getElementById('camVideo');
   const status = document.getElementById('camStatus');
 
   try {
     G.stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: 'environment' },
-        width:  { ideal: 1280 },
-        height: { ideal: 720 },
-      }
+      video: { facingMode:{ideal:'environment'}, width:{ideal:1280}, height:{ideal:720} }
     });
     video.srcObject = G.stream;
     await video.play();
@@ -811,85 +1012,52 @@ function pararCamara() {
     G.stream.getTracks().forEach(t => t.stop());
     G.stream = null;
   }
-  const video = document.getElementById('camVideo');
-  video.srcObject = null;
+  document.getElementById('camVideo').srcObject = null;
 }
 
 async function escanearLoop() {
   if (!G.scanning) return;
   const video = document.getElementById('camVideo');
-  if (video.readyState < 2) {
-    G.rafId = requestAnimationFrame(escanearLoop);
-    return;
-  }
+  if (video.readyState < 2) { G.rafId = requestAnimationFrame(escanearLoop); return; }
 
   if (G.detector) {
-    // BarcodeDetector nativo — ultra rápido
     try {
       const barcodes = await G.detector.detect(video);
-      if (barcodes.length > 0) {
-        const raw = barcodes[0].rawValue;
-        onScanResult(raw);
-      }
+      if (barcodes.length > 0) onScanResult(barcodes[0].rawValue);
     } catch(e) {}
     G.rafId = requestAnimationFrame(escanearLoop);
   } else if (window.ZXing) {
-    // ZXing fallback
     try {
       const canvas = document.createElement('canvas');
-      canvas.width  = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
       const reader = new ZXing.BrowserMultiFormatReader();
       const result = await reader.decodeFromCanvas(canvas);
       if (result) onScanResult(result.getText());
     } catch(e) {}
-    // ZXing es más pesado, dar un pequeño respiro
     setTimeout(() => { G.rafId = requestAnimationFrame(escanearLoop); }, 80);
   } else {
-    // Sin detector — solo manual
     G.rafId = requestAnimationFrame(escanearLoop);
   }
 }
 
+// ★ MODIFICADO: ahora abre el panel en vez de agregar directo
 function onScanResult(raw) {
   if (!raw || !raw.trim()) return;
-  // Cooldown: no procesar el mismo código en < 1.5s
+  if (G.cooldown || G.panelOpen) return;
+
   const now = Date.now();
-  if (G.cooldown) return;
   if (raw === G.lastScan && now - G.lastScanTime < 2000) return;
 
   G.lastScan     = raw;
   G.lastScanTime = now;
-  G.cooldown     = true;
-  setTimeout(() => { G.cooldown = false; }, 1200);
+  G.cooldown     = true; // Se resetea en cerrarPanel()
 
-  const ok = agregarGuia(raw);
-  if (ok) {
-    const codigo = normalizar(raw);
-    const tipo   = tipoGuia(codigo);
-
-    // Flash visual
-    const flash = document.getElementById('flash');
-    flash.classList.add('show');
-    setTimeout(() => flash.classList.remove('show'), 180);
-
-    // Vibración háptica
-    if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
-
-    // Mostrar última guía escaneada
-    const last = document.getElementById('camLast');
-    document.getElementById('lastCode').textContent = codigo;
-    document.getElementById('lastType').textContent = tipoLabel(tipo);
-    last.style.display = '';
-
-    toast(`✓ ${codigo}`, 'ok');
-  }
+  mostrarPanel(raw);
 }
 
 // ═══════════════════════════════════════════════════
-// CONFIRMAR
+// CONFIRMAR  ★ actualizado con tirilla + observación
 // ═══════════════════════════════════════════════════
 function armarConfirm() {
   const n = G.guias.length;
@@ -897,8 +1065,7 @@ function armarConfirm() {
   G.guias.forEach(g => cnt[g.tipo]++);
 
   document.getElementById('c-total').textContent = `${n} guía${n!==1?'s':''}`;
-  document.getElementById('c-sub').textContent =
-    `Para ${G.msj.nombre} · Zona: ${G.msj.zona}`;
+  document.getElementById('c-sub').textContent   = `Para ${G.msj.nombre} · Zona: ${G.msj.zona}`;
 
   document.getElementById('c-info').innerHTML = [
     ['Tipo de vehículo', G.msj.vehiculo],
@@ -916,17 +1083,21 @@ function armarConfirm() {
       <span class="info-val">${v}</span>
     </div>`).join('');
 
-  // Lista compacta en confirmar
+  // Lista en pantalla confirmación con tirilla + observación
   document.getElementById('confirm-list').innerHTML = G.guias.map((g,i) => `
     <div class="guide-item">
-      <div class="g-num">${G.guias.length - i}</div>
-      <div class="g-code">${g.codigo}</div>
-      <div class="g-type tp-${g.tipo}">${tipoLabel(g.tipo)}</div>
+      <div class="g-row">
+        <div class="g-num">${G.guias.length - i}</div>
+        <div class="g-code">${g.codigo}</div>
+        <div class="g-type tp-${g.tipo}">${tipoLabel(g.tipo)}</div>
+        ${g.tipoTirilla ? `<div class="g-tirilla tt-${g.tipoTirilla}">${g.tipoTirilla}</div>` : ''}
+      </div>
+      ${g.observacion ? `<div class="g-obs">💬 ${g.observacion}</div>` : ''}
     </div>`).join('');
 }
 
 // ═══════════════════════════════════════════════════
-// GUARDAR
+// GUARDAR  ★ payload actualizado con tirilla + observación
 // ═══════════════════════════════════════════════════
 function buildPayload() {
   const now = new Date();
@@ -943,6 +1114,8 @@ function buildPayload() {
       codigo:      g.codigo,
       tipo:        g.tipo,
       tipo_label:  tipoLabel(g.tipo),
+      tipoTirilla: g.tipoTirilla  || 'NORMAL',   // ★ NUEVO
+      observacion: g.observacion  || '',           // ★ NUEVO
     })),
   };
 }
@@ -953,19 +1126,15 @@ async function guardar() {
   btn.textContent = '⏳ Guardando...';
 
   const payload = buildPayload();
-
-  // Guardar local siempre
   guardarLocal(payload);
 
-  // Enviar a Sheets si hay URL
   let enviado = false;
   if (SHEETS_URL) {
     try {
       await fetch(SHEETS_URL, {
-        method: 'POST',
-        mode:   'no-cors',
+        method:'POST', mode:'no-cors',
         headers:{'Content-Type':'text/plain'},
-        body:   JSON.stringify(payload),
+        body: JSON.stringify(payload),
       });
       enviado = true;
     } catch(e) {
@@ -977,14 +1146,13 @@ async function guardar() {
     }
   }
 
-  // Éxito
   const n = G.guias.length;
   document.getElementById('suc-title').textContent = `¡${n} guía${n!==1?'s':''} guardada${n!==1?'s':''}!`;
   document.getElementById('suc-msg').textContent =
     `${G.msj.nombre} · ${G.msj.zona}\n${payload.fecha_human} ${payload.hora}` +
     (!enviado && SHEETS_URL ? '\n\n⚠️ Sin conexión — guardado local' : '');
 
-  btn.disabled  = false;
+  btn.disabled    = false;
   btn.textContent = 'Guardar ↑';
   irScreen('s4');
 }
@@ -1005,9 +1173,9 @@ function nuevoMensajero() {
   G.guias = [];
   G.msj   = {};
   document.getElementById('f-vehiculo').value = '';
-  document.getElementById('f-nombre').value = '';
+  document.getElementById('f-nombre').value   = '';
   document.getElementById('lista-mensajeros').innerHTML = '';
-  document.getElementById('f-zona').value   = '';
+  document.getElementById('f-zona').value     = '';
   document.getElementById('manual-inp').value = '';
   renderLista();
   irScreen('s1');
@@ -1027,9 +1195,8 @@ function toast(msg, tipo='info') {
 }
 
 // ═══════════════════════════════════════════════════
-// PERMISOS CÁMARA AL ENTRAR A S2
+// RE-INICIAR CÁMARA AL VOLVER A S2
 // ═══════════════════════════════════════════════════
-// También re-iniciar cámara si vuelven a s2 desde s3
 document.getElementById('s2').addEventListener('transitionend', () => {
   if (document.getElementById('s2').classList.contains('on') && !G.stream) {
     iniciarCamara();
